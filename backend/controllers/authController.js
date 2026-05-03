@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const { User } = require("../models/users");
+const { Account } = require("../models/account");
 const jwt = require("jsonwebtoken");
 const signup = async (req, res) => {
   const { email, firstName, lastName, password } = req.body;
@@ -18,6 +19,11 @@ const signup = async (req, res) => {
     };
 
     const user = await User.create(newUser);
+    const account = await Account.create({
+      user: user._id,
+      balance: process.env.INITIAL_BALANCE,
+      currency: "NPR",
+    });
     const token = jwt.sign(
       { userId: user._id, name: user.firstName },
       process.env.JWT_SECRET,
