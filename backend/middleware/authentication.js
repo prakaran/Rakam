@@ -12,7 +12,7 @@ const authMiddleware = (req, res, next) => {
     next();
   } catch (error) {
     console.log(error);
-    throw new Error("Authentication Invalid.");
+    return res.status(401).json({ message: "Authentication Invalid" });
   }
 };
 

@@ -30,46 +30,56 @@ const getTransactions = async (req, res) => {
 };
 
 const transferFunds = async (req, res) => {
-  const session = await mongoose.startSession();
+  let session;
+
   try {
     const { to, amount } = req.body;
     const from = req.user.userId;
 
-    if (!to || !amount || amount <= 0) {
+    const amountNum = Number(amount);
+
+    if (!to || Number.isNaN(amountNum) || amountNum <= 0) {
       return res.status(400).json({ message: "Invalid Input" });
     }
-    if (to == from) {
+
+    if (!Number.isInteger(amountNum)) {
+      return res.status(400).json({
+        message: "Amount must be in paisa (integer)",
+      });
+    }
+
+    if (to === from) {
       return res.status(400).json({ message: "Cannot send to yourself" });
     }
 
+    session = await mongoose.startSession();
     session.startTransaction();
 
-    const fromAccount = await Account.findOne({ user: from }).session(session);
-    const toAccount = await Account.findOne({ user: to }).session(session);
+    const debitResult = await Account.updateOne(
+      {
+        user: from,
+        balance: { $gte: amountNum },
+      },
+      {
+        $inc: { balance: -amountNum },
+      },
+    ).session(session);
 
-    if (!fromAccount || !toAccount) {
+    if (debitResult.modifiedCount === 0) {
       await session.abortTransaction();
-      return res.status(400).json({ message: "Invalid accounts" });
-    }
-    if (fromAccount.balance < amount) {
-      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ message: "Insufficient balance" });
     }
 
     await Account.updateOne(
-      { user: from },
-      { $inc: { balance: -amount } },
-    ).session(session);
-
-    await Account.updateOne(
       { user: to },
-      { $inc: { balance: amount } },
+      { $inc: { balance: amountNum } },
     ).session(session);
 
     await new Transaction({
       from,
       to,
-      amount,
+      amount: amountNum,
       type: "TRANSFER",
       status: "SUCCESS",
     }).save({ session });
@@ -77,14 +87,17 @@ const transferFunds = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(200).json({ message: "Transfer successful" });
+    return res.status(200).json({ message: "Transfer successful" });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    console.log(error);
-    res.status(500).json("Something went wrong.");
+    if (session) {
+      await session.abortTransaction();
+      session.endSession();
+    }
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong." });
   }
 };
+
 module.exports = {
   getTransactions,
   transferFunds,
