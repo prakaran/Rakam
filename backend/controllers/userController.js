@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/users");
 
-const updateUser = async (req, res, next) => {
+const updateUser = async (req, res) => {
   const updatedUser = {};
   if (req.body.firstName !== undefined) {
     updatedUser.firstName = req.body.firstName;
