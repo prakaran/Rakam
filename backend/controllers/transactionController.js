@@ -1,32 +1,30 @@
 const mongoose = require("mongoose");
 const Account = require("../models/account");
 const Transaction = require("../models/transaction");
+const CustomError = require("../errors/customError");
 
 const getTransactions = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+  const userId = req.user.userId;
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
 
-    const transactions = await Transaction.find({
-      $or: [{ from: userId }, { to: userId }],
-    })
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+  const filter = {
+    $or: [{ from: userId }, { to: userId }],
+  };
 
-    if (transactions.length === 0) {
-      return res
-        .status(200)
-        .json({ transactions, page, count: transactions.length });
-    }
+  const transactions = await Transaction.find(filter)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit);
 
-    res.status(200).json({ transactions });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Something went wrong" });
-  }
+  const total = await Transaction.countDocuments(filter);
+
+  return res.status(200).json({
+    success: true,
+    message: "Transactions retrieved successfully",
+    data: { transactions, page, limit, total },
+  });
 };
 
 const transferFunds = async (req, res) => {
@@ -39,17 +37,15 @@ const transferFunds = async (req, res) => {
     const amountNum = Number(amount);
 
     if (!to || Number.isNaN(amountNum) || amountNum <= 0) {
-      return res.status(400).json({ message: "Invalid Input" });
+      throw new CustomError("Invalid Input", 400);
     }
 
     if (!Number.isInteger(amountNum)) {
-      return res.status(400).json({
-        message: "Amount must be in paisa (integer)",
-      });
+      throw new CustomError("Amount must be in paisa (integer).", 400);
     }
 
     if (to === from) {
-      return res.status(400).json({ message: "Cannot send to yourself" });
+      throw CustomError("Cannot send to yourself.", 400);
     }
 
     session = await mongoose.startSession();
@@ -68,7 +64,7 @@ const transferFunds = async (req, res) => {
     if (debitResult.modifiedCount === 0) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(400).json({ message: "Insufficient balance" });
+      throw new CustomError("Insufficient balance.", 400);
     }
 
     await Account.updateOne(
@@ -87,14 +83,16 @@ const transferFunds = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    return res.status(200).json({ message: "Transfer successful" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Transfer successful" });
   } catch (error) {
     if (session) {
       await session.abortTransaction();
       session.endSession();
     }
     console.error(error);
-    return res.status(500).json({ message: "Something went wrong." });
+    throw error;
   }
 };
 

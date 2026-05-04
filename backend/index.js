@@ -12,6 +12,7 @@ const authRouter = require("./routes/authRoutes.js");
 const userRouter = require("./routes/userRoutes.js");
 const accountRouter = require("./routes/accountRoutes.js");
 const transactionRouter = require("./routes/transactionRoutes.js");
+const errorHandler = require("./middleware/errorHandler.js");
 
 app.use(express.json());
 app.use(cors());
@@ -24,6 +25,8 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/account", accountRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/transactions", transactionRouter);
+
+app.use(errorHandler);
 
 const port = 3000;
 const start = async () => {
@@ -39,6 +42,8 @@ start();
 // POST   /auth/signup
 // POST   /auth/login
 // GET    /users?filter=
+// GET    /users/me
+// PATCH  /users/me
 // GET    /account/balance
 // POST   /transactions/transfer
 // GET    /transactions
