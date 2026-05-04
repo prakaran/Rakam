@@ -5,6 +5,7 @@ const { updateUser, getUser } = require("../controllers/userController");
 const router = express.Router();
 
 router.patch("/me", authMiddleware, updateUser);
+router.get("/me", authMiddleware, getMe);
 router.get("/", authMiddleware, getUser);
 
 module.exports = router;

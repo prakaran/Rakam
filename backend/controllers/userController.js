@@ -35,6 +35,11 @@ const updateUser = async (req, res) => {
   });
 };
 
+const getMe = async (req, res) => {
+  const user = await User.findOne({ _id: req.user.userId }).select("-password");
+  res.status(200).json({ user });
+};
+
 const getUser = async (req, res) => {
   const filter = req.query.filter || "";
   const users = await User.find({
@@ -63,5 +68,6 @@ const getUser = async (req, res) => {
 
 module.exports = {
   updateUser,
+  getMe,
   getUser,
 };
