@@ -45,7 +45,7 @@ const transferFunds = async (req, res) => {
     }
 
     if (to === from) {
-      throw CustomError("Cannot send to yourself.", 400);
+      throw new CustomError("Cannot send to yourself.", 400);
     }
 
     session = await mongoose.startSession();

@@ -6,7 +6,6 @@ const User = require("../models/users");
 const Account = require("../models/account");
 const Transaction = require("../models/transaction");
 const CustomError = require("../errors/customError");
-const { default: mongoose } = require("mongoose");
 
 const signup = async (req, res) => {
   let session;
