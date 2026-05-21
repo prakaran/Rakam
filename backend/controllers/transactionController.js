@@ -14,6 +14,8 @@ const getTransactions = async (req, res) => {
   };
 
   const transactions = await Transaction.find(filter)
+    .populate("from", "firstName lastName email")
+    .populate("to", "firstName lastName email")
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit);
@@ -31,7 +33,7 @@ const transferFunds = async (req, res) => {
   let session;
 
   try {
-    const { to, amount } = req.body;
+    const { to, amount, description } = req.body;
     const from = req.user.userId;
 
     const amountNum = Number(amount);
@@ -76,6 +78,7 @@ const transferFunds = async (req, res) => {
       from,
       to,
       amount: amountNum,
+      description: description || "Money transfer",
       type: "TRANSFER",
       status: "SUCCESS",
     }).save({ session });

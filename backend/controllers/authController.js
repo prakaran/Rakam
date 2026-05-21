@@ -67,7 +67,15 @@ const signup = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "User created successfully",
-      data: { token },
+      data: {
+        token,
+        user: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          _id: user._id,
+        },
+      },
     });
   } catch (error) {
     if (session) {
@@ -110,6 +118,12 @@ const signin = async (req, res) => {
     message: "Login Successful.",
     data: {
       token,
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        _id: user._id,
+      },
     },
   });
 };

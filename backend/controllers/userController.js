@@ -30,7 +30,7 @@ const updateUser = async (req, res) => {
   const user = await User.findOneAndUpdate(
     { _id: req.user.userId },
     { $set: updatedUser },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   if (!user) {
