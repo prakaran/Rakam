@@ -3,14 +3,16 @@ import { accountAPI } from "../services/api";
 import Spinner from "../components/Spinner";
 import { Link } from "react-router-dom";
 import { PaperAirplaneIcon, ArrowsRightLeftIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "../contexts/AuthContext";
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const {
     data: balanceData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["balance"],
+    queryKey: ["balance", user?._id],
     queryFn: accountAPI.getBalance,
   });
 

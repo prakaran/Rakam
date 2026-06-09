@@ -17,7 +17,7 @@ import {
 
 const Layout = () => {
   const { user, logout } = useAuth();
-  const { firstName, lastName, email } = user.data.user;
+  const { firstName, lastName, email } = user || {};
   const navigate = useNavigate();
   const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(() => {

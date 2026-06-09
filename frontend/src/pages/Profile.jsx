@@ -6,7 +6,7 @@ import Spinner from "../components/Spinner";
 
 const Profile = () => {
   const { user } = useAuth();
-  const authUser = user?.data?.user;
+  const authUser = user;
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,7 +22,7 @@ const Profile = () => {
   const queryClient = useQueryClient();
 
   const { isLoading } = useQuery({
-    queryKey: ["user"],
+    queryKey: ["user", user?._id],
     queryFn: userAPI.getMe,
     onSuccess: (data) => {
       setFormData({

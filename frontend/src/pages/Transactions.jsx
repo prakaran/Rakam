@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { transactionAPI } from "../services/api";
 import Spinner from "../components/Spinner";
+import { useAuth } from "../contexts/AuthContext";
 import {
   ArrowDownLeftIcon,
   ArrowUpRightIcon,
@@ -9,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 const Transactions = () => {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -17,7 +19,7 @@ const Transactions = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["transactions", page],
+    queryKey: ["transactions", user?._id, page],
     queryFn: () => transactionAPI.getTransactions(page, limit),
   });
 

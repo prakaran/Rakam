@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { authAPI, userAPI } from "../services/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext(null);
 
@@ -15,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const queryClient = useQueryClient();
 
   // Test mode - bypass API calls for demonstration
   const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
@@ -24,7 +26,7 @@ export const AuthProvider = ({ children }) => {
       if (token && !isTestMode) {
         try {
           const apiResponse = await userAPI.getMe();
-          setUser(apiResponse.data);
+          setUser(apiResponse.data.data.user);
         } catch {
           localStorage.removeItem("token");
           setToken(null);
@@ -53,6 +55,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("token", newToken);
         setToken(newToken);
         setUser(userData);
+        queryClient.invalidateQueries();
 
         return { success: true };
       } else {
@@ -87,6 +90,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("token", newToken);
         setToken(newToken);
         setUser(newUser);
+        queryClient.invalidateQueries();
 
         return { success: true };
       } else {
@@ -116,6 +120,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+    queryClient.clear();
   };
 
   const value = {
